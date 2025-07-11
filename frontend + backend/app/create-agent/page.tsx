@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Slider } from "@/components/ui/slider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Bot,
   Save,
@@ -31,6 +32,8 @@ import { useToast } from "@/hooks/use-toast"
 import { useWriteContract } from "wagmi"
 import { AGENT_REGISTRY_ADDRESS, AGENT_REGISTRY_ABI } from "@/lib/agent-contract"
 import { stringToBytes, keccak256 } from "viem"
+import { APIKeyHelp } from "@/components/api-key-help"
+import { Gemini2FlashInfo } from "@/components/gemini-2-flash-info"
 
 function CreateAgentContent() {
   const { addAgent } = useAppStore()
@@ -49,12 +52,16 @@ function CreateAgentContent() {
       url: "",
     },
     apiKey: "",
+    aiProvider: "gemini" as "openai" | "gemini",
+    aiModel: "gemini-2.0-flash",
     maxTokens: 1000,
     temperature: 0.7,
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [isTestingApiKey, setIsTestingApiKey] = useState(false)
+  const [apiKeyStatus, setApiKeyStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
 
   const personalityOptions = [
     {
@@ -157,6 +164,8 @@ function CreateAgentContent() {
         personalityType: formData.personalityType,
         knowledgeBase: formData.knowledgeBase,
         apiKey: formData.apiKey || undefined,
+        aiProvider: formData.aiProvider,
+        aiModel: formData.aiModel || undefined,
         maxTokens: formData.maxTokens,
         temperature: formData.temperature,
         status: "active",
@@ -212,6 +221,59 @@ function CreateAgentContent() {
     }
   }
 
+  const testApiKey = async () => {
+    if (!formData.apiKey.trim()) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter an API key to test.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsTestingApiKey(true)
+    setApiKeyStatus('idle')
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: "Hello, this is a test message.",
+          personality: "You are a test assistant.",
+          apiKey: formData.apiKey,
+          aiProvider: formData.aiProvider,
+          aiModel: formData.aiModel,
+          maxTokens: 50,
+          temperature: 0.1,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.response) {
+        setApiKeyStatus('valid')
+        toast({
+          title: "API Key Valid",
+          description: "Your API key is working correctly!",
+        })
+      } else {
+        throw new Error(data.error || 'Invalid response')
+      }
+    } catch (error: any) {
+      setApiKeyStatus('invalid')
+      toast({
+        title: "API Key Invalid",
+        description: error.message || "The API key is not working. Please check and try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsTestingApiKey(false)
+    }
+  }
+
   const selectedPersonality = personalityOptions.find((p) => p.value === formData.personalityType)
 
   return (
@@ -256,19 +318,125 @@ function CreateAgentContent() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">Model API Key (Optional)</Label>
-              <Input
-                id="apiKey"
-                type="password"
-                placeholder="Your OpenAI/Gemini API key (leave empty to use default)"
-                value={formData.apiKey}
-                onChange={(e) => handleInputChange("apiKey", e.target.value)}
-              />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                If not provided, the system will use the default API configuration
-              </p>
-            </div>
+            {/* AI Configuration Section */}
+            <Card className="border-2 border-blue-200 dark:border-blue-800">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Bot className="h-5 w-5" />
+                  AI Configuration
+                </CardTitle>
+                <CardDescription>
+                  Configure the AI provider and settings for your agent
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="aiProvider">AI Provider</Label>
+                    <Select 
+                      value={formData.aiProvider} 
+                      onValueChange={(value) => handleInputChange("aiProvider", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select AI provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="openai">OpenAI (GPT)</SelectItem>
+                        <SelectItem value="gemini">Google Gemini</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="aiModel">AI Model (Optional)</Label>
+                    <Select 
+                      value={formData.aiModel} 
+                      onValueChange={(value) => handleInputChange("aiModel", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select model (default will be used if empty)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.aiProvider === "openai" ? (
+                          <>
+                            <SelectItem value="gpt-4">GPT-4</SelectItem>
+                            <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                            <SelectItem value="gpt-3.5-turbo-16k">GPT-3.5 Turbo 16K</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="gemini-2.0-flash">Gemini 2.0 Flash (Latest)</SelectItem>
+                            <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
+                            <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="apiKey">API Key (Optional)</Label>
+                    {formData.apiKey && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={testApiKey}
+                        disabled={isTestingApiKey}
+                        className={`text-xs ${
+                          apiKeyStatus === 'valid' 
+                            ? 'border-green-500 text-green-600' 
+                            : apiKeyStatus === 'invalid' 
+                            ? 'border-red-500 text-red-600' 
+                            : ''
+                        }`}
+                      >
+                        {isTestingApiKey ? (
+                          <>
+                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+                            Testing...
+                          </>
+                        ) : apiKeyStatus === 'valid' ? (
+                          <>
+                            ✓ Valid
+                          </>
+                        ) : apiKeyStatus === 'invalid' ? (
+                          <>
+                            ✗ Invalid
+                          </>
+                        ) : (
+                          'Test API Key'
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  <Input
+                    id="apiKey"
+                    type="password"
+                    placeholder={`Your ${formData.aiProvider === 'openai' ? 'OpenAI' : 'Google Gemini'} API key`}
+                    value={formData.apiKey}
+                    onChange={(e) => {
+                      handleInputChange("apiKey", e.target.value)
+                      setApiKeyStatus('idle') // Reset status when key changes
+                    }}
+                  />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Leave empty to use fallback responses. With an API key, your agent will provide intelligent AI-powered responses.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* API Key Help */}
+            <APIKeyHelp provider={formData.aiProvider} />
+
+            {/* Gemini 2.0 Flash Info */}
+            {formData.aiProvider === 'gemini' && (
+              <Gemini2FlashInfo />
+            )}
           </CardContent>
         </Card>
 
