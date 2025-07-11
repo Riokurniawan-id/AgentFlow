@@ -1,0 +1,56 @@
+{
+  "networks": {
+    "lisk-sepolia": {
+      "chainId": 4202,
+      "rpcUrl": "https://rpc.sepolia-api.lisk.com",
+      "explorer": "https://sepolia-blockscout.lisk.com",
+      "name": "Lisk Sepolia Testnet"
+    },
+    "localhost": {
+      "chainId": 31337,
+      "rpcUrl": "http://127.0.0.1:8545",
+      "explorer": null,
+      "name": "Hardhat Local"
+    }
+  },
+  "contracts": {
+    "charityFactory": {
+      "description": "Factory contract untuk membuat campaign donasi",
+      "functions": {
+        "createCampaign": "Buat campaign dengan ETH",
+        "createTokenCampaign": "Buat campaign dengan token ERC20",
+        "getAllCampaigns": "Get semua campaign",
+        "getCampaignsByOwner": "Get campaign per owner",
+        "getActiveCampaigns": "Get campaign aktif"
+      }
+    },
+    "charityCampaign": {
+      "description": "Contract individual untuk setiap campaign",
+      "functions": {
+        "donate": "Donasi ETH",
+        "donateToken": "Donasi token",
+        "withdraw": "Withdraw jika goal tercapai",
+        "getProgressPercentage": "Progress campaign dalam persentase"
+      }
+    },
+    "mockERC20": {
+      "description": "Mock token untuk testing",
+      "functions": {
+        "mint": "Mint token untuk testing",
+        "approve": "Approve token untuk donasi"
+      }
+    }
+  },
+  "events": {
+    "CampaignCreated": "Emitted saat campaign baru dibuat",
+    "DonationReceived": "Emitted saat ada donasi masuk",
+    "CampaignWithdrawn": "Emitted saat campaign diwithdraw",
+    "CampaignUpdated": "Emitted saat campaign diupdate"
+  },
+  "frontend": {
+    "web3Provider": "ethers.js atau web3.js",
+    "walletConnection": "MetaMask atau wallet lain",
+    "uiFramework": "React/Next.js",
+    "styling": "Tailwind CSS atau styled-components"
+  }
+} 

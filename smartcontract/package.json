@@ -1,0 +1,31 @@
+{
+  "name": "charity-web3-transparan",
+  "version": "1.0.0",
+  "description": "Sistem Charity Web3 Transparan dengan Smart Contracts",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.ts --network lisk-sepolia",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "node": "hardhat node",
+    "clean": "hardhat clean"
+  },
+  "keywords": [
+    "charity",
+    "web3",
+    "blockchain",
+    "donation",
+    "transparan"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.0.0",
+    "@openzeppelin/contracts": "^5.3.0",
+    "@types/node": "^20.19.6",
+    "dotenv": "^17.2.0",
+    "hardhat": "^2.25.0",
+    "typescript": "^5.8.3"
+  }
+}
