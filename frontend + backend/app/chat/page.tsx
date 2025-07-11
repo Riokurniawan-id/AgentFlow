@@ -32,12 +32,20 @@ function ChatContent() {
   const activeAgents = agents.filter((agent) => agent.status === "active")
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: "smooth",
+          block: "end",
+          inline: "nearest"
+        });
+      }, 100);
+    }
   }
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, isLoading])
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !selectedAgent || isLoading) return
@@ -50,33 +58,67 @@ function ChatContent() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const currentInput = inputMessage
     setInputMessage("")
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(
-      () => {
-        const responses = [
-          "I understand your question. Let me help you with that.",
-          "That's an interesting point. Based on my training, I would suggest...",
-          "I'm here to assist you. Could you provide more details about what you're looking for?",
-          "Thank you for your message. I'm processing your request and will provide a helpful response.",
-          "I appreciate you reaching out. Let me think about the best way to address your concern.",
-        ]
+    try {
+      // Prepare conversation history for API
+      const conversationHistory = messages.map(msg => ({
+        sender: msg.sender,
+        content: msg.content
+      }))
 
-        const agentMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: `${responses[Math.floor(Math.random() * responses.length)]} This response is generated based on my personality: "${selectedAgent.personality}"`,
-          sender: "agent",
-          timestamp: new Date(),
-        }
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          agentId: selectedAgent.id,
+          personality: selectedAgent.personality,
+          knowledgeBase: selectedAgent.knowledgeBase,
+          apiKey: selectedAgent.apiKey,
+          aiProvider: selectedAgent.aiProvider || 'openai',
+          aiModel: selectedAgent.aiModel,
+          maxTokens: selectedAgent.maxTokens,
+          temperature: selectedAgent.temperature,
+          conversationHistory
+        }),
+      })
 
-        setMessages((prev) => [...prev, agentMessage])
-        incrementChatCount(selectedAgent.id)
-        setIsLoading(false)
-      },
-      1000 + Math.random() * 2000,
-    )
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response')
+      }
+
+      const agentMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.response,
+        sender: "agent",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, agentMessage])
+      incrementChatCount(selectedAgent.id)
+
+    } catch (error: any) {
+      console.error('Chat error:', error)
+      
+      // Show fallback response on error
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: `I apologize, but I encountered an error: ${error.message}. Please check your API key configuration and try again.`,
+        sender: "agent",
+        timestamp: new Date(),
+      }
+      
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -119,8 +161,8 @@ function ChatContent() {
       {selectedAgent ? (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3 order-2 lg:order-1">
-            <Card className="h-[500px] sm:h-[600px] flex flex-col">
-              <CardHeader className="border-b">
+            <Card className="h-[600px] sm:h-[700px] flex flex-col">
+              <CardHeader className="border-b flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <Avatar>
                     <AvatarFallback>
@@ -136,9 +178,9 @@ function ChatContent() {
                 </div>
               </CardHeader>
 
-              <CardContent className="flex-1 flex flex-col p-0">
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
+              <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+                <ScrollArea className="flex-1 min-h-0 chat-scroll-area">
+                  <div className="p-4 space-y-4 chat-container">
                     {messages.length === 0 && (
                       <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                         <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -167,7 +209,7 @@ function ChatContent() {
                               : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                           }`}
                         >
-                          <p className="text-sm break-words">{message.content}</p>
+                          <p className="text-sm break-words whitespace-pre-wrap leading-relaxed">{message.content}</p>
                           <p
                             className={`text-xs mt-1 ${
                               message.sender === "user" ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
@@ -214,7 +256,7 @@ function ChatContent() {
                   </div>
                 </ScrollArea>
 
-                <div className="border-t p-4">
+                <div className="border-t p-4 flex-shrink-0">
                   <div className="flex gap-2">
                     <Input
                       placeholder="Type your message..."
@@ -244,6 +286,20 @@ function ChatContent() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
+                    <p className="font-medium text-gray-900 dark:text-white">AI Provider</p>
+                    <p className="text-gray-600 dark:text-gray-300 capitalize">
+                      {selectedAgent.aiProvider || 'OpenAI'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Model</p>
+                    <p className="text-gray-600 dark:text-gray-300">
+                      {selectedAgent.aiModel || 'Default'}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
                     <p className="font-medium text-gray-900 dark:text-white">Max Tokens</p>
                     <p className="text-gray-600 dark:text-gray-300">{selectedAgent.maxTokens}</p>
                   </div>
@@ -251,6 +307,12 @@ function ChatContent() {
                     <p className="font-medium text-gray-900 dark:text-white">Temperature</p>
                     <p className="text-gray-600 dark:text-gray-300">{selectedAgent.temperature}</p>
                   </div>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">API Key</p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {selectedAgent.apiKey ? '••••••••' : 'Not configured (fallback mode)'}
+                  </p>
                 </div>
               </CardContent>
             </Card>

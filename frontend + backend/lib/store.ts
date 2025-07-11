@@ -13,6 +13,8 @@ export interface Agent {
     url?: string
   }
   apiKey?: string
+  aiProvider?: "openai" | "gemini"
+  aiModel?: string
   maxTokens: number
   temperature: number
   status: "active" | "inactive"
@@ -56,6 +58,8 @@ export const useAppStore = create<AppState>()(
             content:
               "I am a customer support assistant trained to help with common inquiries, product information, and troubleshooting.",
           },
+          aiProvider: "openai",
+          aiModel: "gpt-3.5-turbo",
           maxTokens: 1000,
           temperature: 0.7,
           status: "active",
@@ -72,6 +76,8 @@ export const useAppStore = create<AppState>()(
             content:
               "I am a programming expert with deep knowledge of JavaScript, React, Node.js, and modern web development practices.",
           },
+          aiProvider: "gemini",
+          aiModel: "gemini-1.5-pro",
           maxTokens: 2000,
           temperature: 0.3,
           status: "active",
