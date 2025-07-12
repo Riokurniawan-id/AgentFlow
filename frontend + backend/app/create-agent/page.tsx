@@ -191,7 +191,7 @@ function CreateAgentContent() {
       setFormData((prev) => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof typeof prev] as Record<string, any> || {}),
           [child]: value,
         },
       }))
@@ -335,7 +335,7 @@ function CreateAgentContent() {
                     <Label htmlFor="aiProvider">AI Provider</Label>
                     <Select 
                       value={formData.aiProvider} 
-                      onValueChange={(value) => handleInputChange("aiProvider", value)}
+                      onValueChange={(value: string) => handleInputChange("aiProvider", value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select AI provider" />
@@ -351,7 +351,7 @@ function CreateAgentContent() {
                     <Label htmlFor="aiModel">AI Model (Optional)</Label>
                     <Select 
                       value={formData.aiModel} 
-                      onValueChange={(value) => handleInputChange("aiModel", value)}
+                      onValueChange={(value: string) => handleInputChange("aiModel", value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select model (default will be used if empty)" />
@@ -520,7 +520,7 @@ function CreateAgentContent() {
           <CardContent>
             <Tabs
               value={formData.knowledgeBase.type}
-              onValueChange={(value) => handleInputChange("knowledgeBase.type", value)}
+              onValueChange={(value: string) => handleInputChange("knowledgeBase.type", value)}
             >
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="manual" className="flex items-center gap-2">
@@ -678,7 +678,7 @@ function CreateAgentContent() {
                 <Label>Max Tokens: {formData.maxTokens}</Label>
                 <Slider
                   value={[formData.maxTokens]}
-                  onValueChange={(value) => handleInputChange("maxTokens", value[0])}
+                  onValueChange={(value: number[]) => handleInputChange("maxTokens", value[0])}
                   max={4000}
                   min={100}
                   step={100}
@@ -691,7 +691,7 @@ function CreateAgentContent() {
                 <Label>Temperature: {formData.temperature}</Label>
                 <Slider
                   value={[formData.temperature]}
-                  onValueChange={(value) => handleInputChange("temperature", value[0])}
+                  onValueChange={(value: number[]) => handleInputChange("temperature", value[0])}
                   max={2}
                   min={0}
                   step={0.1}

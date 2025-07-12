@@ -38,7 +38,7 @@ Platform manajemen AI Agent yang terintegrasi dengan blockchain untuk membuat, m
 
 ### Prerequisites
 - Node.js 18+
-- pnpm atau npm
+- npm
 - MetaMask wallet
 - Lisk network connection
 
@@ -46,7 +46,7 @@ Platform manajemen AI Agent yang terintegrasi dengan blockchain untuk membuat, m
 
 1. **Install dependencies**
 ```bash
-pnpm install
+npm install
 ```
 
 2. **Environment Setup** (Optional)
@@ -61,17 +61,17 @@ GEMINI_API_KEY=your_gemini_key
 
 3. **Run development server**
 ```bash
-pnpm dev
+npm run dev
 ```
 
 4. **Build for production**
 ```bash
-pnpm build
+npm run build
 ```
 
 5. **Start production server**
 ```bash
-pnpm start
+npm start
 ```
 
 ## 🤖 AI Configuration
