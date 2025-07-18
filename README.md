@@ -1,4 +1,5 @@
-# AgentFlow
+# AgentFlow - live on Lisk Sepolia
+https://ai-agent-flow-xi.vercel.app/
 ![Banner AgentFlow](frontend-backend/public/LISK-BUILDER.png)
 
 AgentFlow adalah platform manajemen AI Agent terintegrasi blockchain yang memungkinkan pembuatan, pengelolaan, dan deployment AI agent secara terdesentralisasi. Platform ini mendukung integrasi dengan AI providers seperti OpenAI dan Google Gemini, serta menggunakan smart contract di blockchain (Lisk/EVM) untuk transparansi dan keamanan data agent.
