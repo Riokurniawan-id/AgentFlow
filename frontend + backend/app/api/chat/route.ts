@@ -33,11 +33,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if API key is provided for the selected provider
+    let finalApiKey = apiKey;
+    let finalProvider = aiProvider;
+    let finalModel = aiModel;
     if (!apiKey?.trim()) {
-      // Use fallback response if no API key is provided
-      return NextResponse.json({
-        response: generateFallbackResponse(message, personality)
-      })
+      finalProvider = 'gemini';
+      finalModel = 'gemini-2.0-flash';
+      finalApiKey = process.env.API_KEY_GEMINI_DEFAULT;
     }
 
     // Build conversation history
@@ -53,12 +55,17 @@ export async function POST(request: NextRequest) {
     ]
 
     // Generate AI response
+    if (!finalApiKey) {
+      return NextResponse.json({
+        response: generateFallbackResponse(message, personality)
+      })
+    }
     const response = await aiService.generateResponse(
       messages,
       {
-        provider: aiProvider,
-        apiKey,
-        model: aiModel,
+        provider: finalProvider,
+        apiKey: finalApiKey,
+        model: finalModel,
         maxTokens,
         temperature
       },

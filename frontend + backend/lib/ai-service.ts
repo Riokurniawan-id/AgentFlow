@@ -23,17 +23,17 @@ class AIService {
     personality: string,
     knowledgeBase?: string
   ): Promise<string> {
-    const { provider, maxTokens = 1000, temperature = 0.7 } = options
+    let { provider, maxTokens = 1000, temperature = 0.7 } = options
     let { apiKey, model } = options
 
     // Use environment variables as fallback
     if (!apiKey) {
-      const fallbackKey = provider === 'openai' 
-        ? process.env.OPENAI_API_KEY 
-        : process.env.GEMINI_API_KEY
-      
+      // Jika user tidak input API key, pakai Gemini 2.0 Flash default
+      provider = 'gemini';
+      model = 'gemini-2.0-flash';
+      const fallbackKey = process.env.API_KEY_GEMINI_DEFAULT;
       if (fallbackKey) {
-        apiKey = fallbackKey
+        apiKey = fallbackKey;
       }
     }
 
