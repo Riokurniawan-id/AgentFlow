@@ -1,5 +1,5 @@
 # AgentFlow
-
+![Banner AgentFlow](frontend%20+%20backend/public/LISK-BUILDER.png)
 Platform manajemen AI Agent yang terintegrasi dengan blockchain untuk membuat, mengelola, dan mendeploy AI agent secara terdesentralisasi dengan dukungan AI providers seperti OpenAI dan Google Gemini.
 
 ## 🌟 Fitur Utama
