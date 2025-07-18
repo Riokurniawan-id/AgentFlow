@@ -20,7 +20,6 @@ AgentFlow adalah platform manajemen AI Agent terintegrasi blockchain yang memung
 ## 👨‍💻 Tim Pengembang
 
 - **I PUTU RIO KURNIAWAN** – Fullstack Web
-- **Risky Juniardi** – Fullstack Web 
 
 ## 🏗️ Arsitektur
 
