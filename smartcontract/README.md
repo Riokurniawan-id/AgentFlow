@@ -1,6 +1,6 @@
 ## 📜 Smart Contract Overview
 
-AGENT ADDRESS = "0x5928548A91E7269c8BcB1B2e6DEFFe5cd40bd156"
+CONTRACT AGENT ADDRESS = "0x5928548A91E7269c8BcB1B2e6DEFFe5cd40bd156"
 
 The contract includes:
 
