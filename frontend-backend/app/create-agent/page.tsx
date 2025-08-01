@@ -156,8 +156,8 @@ function CreateAgentContent() {
           formData.personalityType,
         ],
       })
-      // Simpan ke store lokal (opsional, untuk UI cepat)
-      addAgent({
+      // Simpan ke store lokal dan Supabase
+      const newAgent = await addAgent({
         name: formData.name,
         personality:
           formData.personalityType === "custom" ? formData.personality : selectedPersonality?.description || "",
@@ -170,15 +170,26 @@ function CreateAgentContent() {
         temperature: formData.temperature,
         status: "active",
       })
+
+      if (!newAgent) {
+        throw new Error("Failed to save agent to database")
+      }
       toast({
         title: "Agent Created",
         description: "Your AI agent has been successfully created and deployed to the blockchain.",
       })
       router.push("/agents")
     } catch (err: any) {
+      console.error('Error creating agent:', err)
+      
+      // Check if it's a database error or blockchain error
+      const isDatabaseError = err?.message?.includes('database') || 
+                             err?.message?.includes('Supabase') ||
+                             err?.message?.includes('Failed to save agent')
+      
       toast({
-        title: "Blockchain Error",
-        description: err?.message || "Failed to create agent on blockchain.",
+        title: isDatabaseError ? "Database Error" : "Blockchain Error",
+        description: err?.message || (isDatabaseError ? "Failed to save agent to database" : "Failed to create agent on blockchain."),
         variant: "destructive",
       })
       setIsSubmitting(false)
@@ -191,7 +202,7 @@ function CreateAgentContent() {
       setFormData((prev) => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof typeof prev] as object),
           [child]: value,
         },
       }))

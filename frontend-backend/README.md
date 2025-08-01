@@ -1,207 +1,218 @@
-# AgentFlow Live on Lisk Sepolia
-![Banner AgentFlow](frontend%20+%20backend/public/LISK-BUILDER.png)
-Platform manajemen AI Agent yang terintegrasi dengan blockchain untuk membuat, mengelola, dan mendeploy AI agent secara terdesentralisasi dengan dukungan AI providers seperti OpenAI dan Google Gemini.
+# AgentFlow - AI Agent Management Platform
 
-## 🌟 Fitur Utama
+A modern web application for creating, managing, and embedding AI agents with support for multiple AI providers.
 
-### ✅ **Manajemen AI Agent**
-- Buat AI agent dengan personality dan kemampuan yang unik
-- Kelola dan konfigurasi agent secara real-time
-- Deploy agent ke blockchain untuk keamanan dan transparansi
-- **🆕 Integrasi AI Real-time dengan OpenAI & Google Gemini**
+## Features
 
-### ✅ **AI Integration**
-- **🤖 Multiple AI Providers**: OpenAI (GPT-3.5, GPT-4) dan Google Gemini
-- **🔑 User API Keys**: Pengguna dapat memasukkan API key mereka sendiri
-- **⚙️ Flexible Configuration**: Pilih model, temperature, dan max tokens
-- **🧪 API Key Testing**: Validasi API key sebelum penggunaan
-- **🛡️ Fallback Mode**: Respons tetap bekerja tanpa API key
+- 🤖 Create and manage AI agents with custom personalities
+- 🌐 Embed agents into any website with customizable widgets
+- 🔧 Support for multiple AI providers (OpenAI, Gemini)
+- 📊 Analytics and chat tracking
+- 🎨 Customizable themes and styling
+- 🔒 Protected routes and user authentication
+- 💾 Persistent data storage with Supabase
 
-### ✅ **Integrasi Blockchain**
-- Wallet integration dengan MetaMask
-- Smart contract untuk manajemen agent
-- Transaksi terdesentralisasi dan transparan
+## Tech Stack
 
-### ✅ **Embed & Integrasi**
-- Generate embed code untuk website
-- Floating chat widget
-- React component integration
-- Customizable theme dan styling
+- **Frontend**: Next.js 14, React, TypeScript
+- **Styling**: Tailwind CSS, Radix UI
+- **State Management**: Zustand
+- **Database**: Supabase (PostgreSQL)
+- **AI Providers**: OpenAI, Google Gemini
+- **Authentication**: Custom implementation
 
-### ✅ **Analytics & Monitoring**
-- Track performance agent
-- Usage statistics
-- Chat analytics
-- Real-time monitoring
-
-## 🚀 Quick Start
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- pnpm atau npm
-- MetaMask wallet
-- Lisk network connection
+
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
 
 ### Installation
 
-1. **Install dependencies**
+1. Clone the repository:
 ```bash
-pnpm install
+git clone <repository-url>
+cd frontend-backend
 ```
 
-2. **Environment Setup** (Optional)
+2. Install dependencies:
 ```bash
-# Copy environment file
-cp .env.example .env
-
-# Add your default API keys (optional)
-OPENAI_API_KEY=your_openai_key
-GEMINI_API_KEY=your_gemini_key
+npm install
 ```
 
-3. **Run development server**
+3. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Get your project URL and anon key from the project settings
+
+4. Create environment variables:
 ```bash
-pnpm dev
+cp .env.local.example .env.local
 ```
 
-4. **Build for production**
+5. Update `.env.local` with your configuration:
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# AI API Keys
+API_KEY_GEMINI_DEFAULT=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+### Database Setup
+
+1. In your Supabase dashboard, go to the SQL Editor
+2. Run the following SQL to create the agents table:
+
+```sql
+-- Create agents table
+CREATE TABLE agents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  personality TEXT NOT NULL,
+  personality_type TEXT NOT NULL CHECK (personality_type IN ('custom', 'friendly', 'professional', 'technical', 'creative', 'formal')),
+  knowledge_base JSONB NOT NULL,
+  api_key TEXT,
+  ai_provider TEXT CHECK (ai_provider IN ('openai', 'gemini')),
+  ai_model TEXT,
+  max_tokens INTEGER NOT NULL DEFAULT 1000,
+  temperature DECIMAL(3,2) NOT NULL DEFAULT 0.7,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  chat_count INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for better performance
+CREATE INDEX idx_agents_status ON agents(status);
+CREATE INDEX idx_agents_created_at ON agents(created_at DESC);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE agents ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow all operations (you can customize this based on your needs)
+CREATE POLICY "Allow all operations" ON agents FOR ALL USING (true);
+
+-- Create function to increment chat count
+CREATE OR REPLACE FUNCTION increment(row_id UUID, x INTEGER)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN x;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Running the Application
+
+1. Start the development server:
 ```bash
-pnpm build
+npm run dev
 ```
 
-5. **Start production server**
-```bash
-pnpm start
+2. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Embedding Agents
+
+### HTML Iframe
+```html
+<iframe 
+  src="https://your-domain.com/embed/agent-id?theme=light&header=true&color=3b82f6"
+  width="400"
+  height="600"
+  frameborder="0"
+  style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+  title="AI Agent Chatbot">
+</iframe>
 ```
 
-## 🤖 AI Configuration
-
-### Supported Providers
-- **OpenAI**: GPT-3.5-turbo, GPT-4, GPT-4-turbo, GPT-3.5-turbo-16k
-- **Google Gemini**: Gemini 2.0 Flash, Gemini 1.5 Pro, Gemini 1.5 Flash
-
-### Getting API Keys
-1. **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-2. **Google Gemini**: [makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
-
-### Agent Configuration
-1. Pilih AI Provider (OpenAI atau Gemini)
-2. Pilih Model (opsional, menggunakan default jika kosong)
-3. Masukkan API Key
-4. Test API Key untuk validasi
-5. Atur parameter (temperature, max tokens)
-
-### Fallback Mode
-Jika tidak ada API key, agent akan menggunakan respons fallback yang masih sesuai dengan personality yang dikonfigurasi.
-
-## 🏗️ Arsitektur
-
-```
-AgentFlow Frontend
-├── app/ - Next.js app router
-│   ├── api/chat/ - AI chat API endpoint
-│   ├── dashboard/ - Dashboard utama
-│   ├── agents/ - Manajemen agent
-│   ├── create-agent/ - Form pembuatan agent
-│   ├── chat/ - Testing agent
-│   ├── analytics/ - Analytics dan monitoring
-│   ├── billing/ - Manajemen billing
-│   └── embed/ - Embed chat widget
-├── components/ - Reusable components
-│   └── api-key-help.tsx - API key helper
-├── lib/ - Utilities dan store
-│   └── ai-service.ts - AI service layer
-└── public/ - Static assets
+### Floating Widget
+```html
+<!-- Floating Chat Widget -->
+<div id="ai-chat-widget-agent-id"></div>
+<script>
+  (function() {
+    var widget = document.createElement('div');
+    widget.innerHTML = `
+      <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 400px; height: 600px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); overflow: hidden; display: none;" id="chat-widget-container">
+        <iframe src="https://your-domain.com/embed/agent-id?theme=light&header=true&color=3b82f6" width="100%" height="100%" frameborder="0" title="AI Agent Chatbot"></iframe>
+      </div>
+      <button style="position: fixed; bottom: 20px; right: 20px; z-index: 10000; width: 60px; height: 60px; border-radius: 50%; background: #3b82f6; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;" onclick="toggleChatWidget()" id="chat-widget-button">💬</button>
+    `;
+    document.body.appendChild(widget);
+    
+    window.toggleChatWidget = function() {
+      var container = document.getElementById('chat-widget-container');
+      var button = document.getElementById('chat-widget-button');
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+        button.innerHTML = '✕';
+      } else {
+        container.style.display = 'none';
+        button.innerHTML = '💬';
+      }
+    };
+  })();
+</script>
 ```
 
-## 🔧 Teknologi
+## API Endpoints
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **AI Integration**: OpenAI SDK, Google Generative AI SDK
-- **Styling**: Tailwind CSS, shadcn/ui
-- **State Management**: Zustand
-- **Blockchain**: Lisk SDK, MetaMask
-- **UI Components**: Radix UI, Lucide Icons
-
-## 📱 Pages & Features
-
-### Dashboard
-- Overview agent dan aktivitas
-- Quick stats dan metrics
-- Recent agents
-
-### Agents Management
-- List semua agent
-- Edit dan konfigurasi
-- Status management (active/inactive)
-- Embed code generator
-
-### Create Agent
-- Form pembuatan agent
-- Personality configuration
-- Knowledge base setup
-- Behavior settings
-
-### Chat Testing
-- Real-time chat dengan agent
-- Test conversation flow
-- Response validation
-
-### Analytics
-- Performance metrics
-- Usage statistics
-- Chat distribution
-- Agent comparison
-
-### Embed Integration
-- HTML iframe embed
-- Floating widget
-- React component
-- Customizable styling
-
-## 🔐 Authentication
-
-- MetaMask wallet connection
-- Lisk address verification
-- Session management
-- Protected routes
-
-## 🎨 Customization
-
-- Dark/Light theme
-- Custom color schemes
-- Responsive design
-- Mobile-friendly interface
-
-## 📦 Deployment
-
-### Vercel (Recommended)
-```bash
-npm install -g vercel
-vercel
+### Get Agent
+```
+GET /api/agents/[agentId]
 ```
 
-### Docker
-```bash
-docker build -t agentflow .
-docker run -p 3000:3000 agentflow
+### Update Agent
+```
+PUT /api/agents/[agentId]
 ```
 
-## 🤝 Contributing
+### Delete Agent
+```
+DELETE /api/agents/[agentId]
+```
 
-1. Fork repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create Pull Request
+### Chat with Agent
+```
+POST /api/chat
+Body: {
+  message: string,
+  agentId: string,
+  personality: string,
+  knowledgeBase: object,
+  apiKey?: string,
+  aiProvider?: string,
+  aiModel?: string,
+  maxTokens?: number,
+  temperature?: number,
+  conversationHistory?: array
+}
+```
 
-## 📄 License
+## Environment Variables
 
-MIT License - see LICENSE file for details
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+| `API_KEY_GEMINI_DEFAULT` | Default Gemini API key | No |
+| `OPENAI_API_KEY` | OpenAI API key | No |
 
-## 🆘 Support
+## Contributing
 
-Untuk dukungan dan pertanyaan:
-- Create issue di GitHub
-- Email: support@agentflow.com
-- Documentation: docs.agentflow.com 
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support, please open an issue in the GitHub repository or contact the development team. 

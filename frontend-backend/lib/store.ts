@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { AgentService } from "./agent-service"
 
 export interface Agent {
   id: string
@@ -35,85 +36,96 @@ interface AppState {
   user: User | null
   agents: Agent[]
   isConnected: boolean
+  isLoading: boolean
   setUser: (user: User | null) => void
   setConnected: (connected: boolean) => void
-  addAgent: (agent: Omit<Agent, "id" | "createdAt" | "chatCount">) => void
-  updateAgent: (id: string, updates: Partial<Agent>) => void
-  deleteAgent: (id: string) => void
-  incrementChatCount: (agentId: string) => void
+  loadAgents: () => Promise<void>
+  addAgent: (agent: Omit<Agent, "id" | "createdAt" | "chatCount">) => Promise<Agent | null>
+  updateAgent: (id: string, updates: Partial<Agent>) => Promise<Agent | null>
+  deleteAgent: (id: string) => Promise<boolean>
+  incrementChatCount: (agentId: string) => Promise<boolean>
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       user: null,
-      agents: [
-        {
-          id: "1",
-          name: "Customer Support Bot",
-          personality: "Friendly and helpful customer service assistant",
-          personalityType: "friendly",
-          knowledgeBase: {
-            type: "manual",
-            content:
-              "I am a customer support assistant trained to help with common inquiries, product information, and troubleshooting.",
-          },
-          aiProvider: "openai",
-          aiModel: "gpt-3.5-turbo",
-          maxTokens: 1000,
-          temperature: 0.7,
-          status: "active",
-          chatCount: 156,
-          createdAt: new Date("2024-01-15"),
-        },
-        {
-          id: "2",
-          name: "Code Assistant",
-          personality: "Expert programming assistant specializing in web development",
-          personalityType: "technical",
-          knowledgeBase: {
-            type: "manual",
-            content:
-              "I am a programming expert with deep knowledge of JavaScript, React, Node.js, and modern web development practices.",
-          },
-          aiProvider: "gemini",
-          aiModel: "gemini-1.5-pro",
-          maxTokens: 2000,
-          temperature: 0.3,
-          status: "active",
-          chatCount: 89,
-          createdAt: new Date("2024-01-20"),
-        },
-      ],
+      agents: [],
       isConnected: false,
+      isLoading: false,
       setUser: (user) => set({ user }),
       setConnected: (connected) => set({ isConnected: connected }),
-      addAgent: (agentData) => {
-        const newAgent: Agent = {
-          ...agentData,
-          id: Date.now().toString(),
-          createdAt: new Date(),
-          chatCount: 0,
+      loadAgents: async () => {
+        set({ isLoading: true })
+        try {
+          const agents = await AgentService.getAgents()
+          set({ agents })
+        } catch (error) {
+          console.error('Error loading agents:', error)
+        } finally {
+          set({ isLoading: false })
         }
-        set((state) => ({ agents: [...state.agents, newAgent] }))
       },
-      updateAgent: (id, updates) =>
-        set((state) => ({
-          agents: state.agents.map((agent) => (agent.id === id ? { ...agent, ...updates } : agent)),
-        })),
-      deleteAgent: (id) =>
-        set((state) => ({
-          agents: state.agents.filter((agent) => agent.id !== id),
-        })),
-      incrementChatCount: (agentId) =>
-        set((state) => ({
-          agents: state.agents.map((agent) =>
-            agent.id === agentId ? { ...agent, chatCount: agent.chatCount + 1 } : agent,
-          ),
-        })),
+      addAgent: async (agentData) => {
+        try {
+          const newAgent = await AgentService.createAgent(agentData)
+          if (newAgent) {
+            set((state) => ({ agents: [newAgent, ...state.agents] }))
+          }
+          return newAgent
+        } catch (error) {
+          console.error('Error adding agent:', error)
+          throw error // Re-throw to allow calling code to handle
+        }
+      },
+      updateAgent: async (id, updates) => {
+        try {
+          const updatedAgent = await AgentService.updateAgent(id, updates)
+          if (updatedAgent) {
+            set((state) => ({
+              agents: state.agents.map((agent) => (agent.id === id ? updatedAgent : agent)),
+            }))
+          }
+          return updatedAgent
+        } catch (error) {
+          console.error('Error updating agent:', error)
+          return null
+        }
+      },
+      deleteAgent: async (id) => {
+        try {
+          const success = await AgentService.deleteAgent(id)
+          if (success) {
+            set((state) => ({
+              agents: state.agents.filter((agent) => agent.id !== id),
+            }))
+          }
+          return success
+        } catch (error) {
+          console.error('Error deleting agent:', error)
+          return false
+        }
+      },
+      incrementChatCount: async (agentId) => {
+        try {
+          const success = await AgentService.incrementChatCount(agentId)
+          if (success) {
+            set((state) => ({
+              agents: state.agents.map((agent) =>
+                agent.id === agentId ? { ...agent, chatCount: agent.chatCount + 1 } : agent,
+              ),
+            }))
+          }
+          return success
+        } catch (error) {
+          console.error('Error incrementing chat count:', error)
+          return false
+        }
+      },
     }),
     {
       name: "ai-agent-storage",
+      partialize: (state) => ({ user: state.user, isConnected: state.isConnected }),
     },
   ),
 )

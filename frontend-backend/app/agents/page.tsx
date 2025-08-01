@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -634,9 +634,14 @@ export default ${agent.name.replace(/\s+/g, "")}Chatbot;`
 }
 
 function AgentsContent() {
-  const { agents, deleteAgent, updateAgent } = useAppStore()
+  const { agents, deleteAgent, updateAgent, loadAgents, isLoading } = useAppStore()
   const { toast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  // Load agents on component mount
+  useEffect(() => {
+    loadAgents()
+  }, [loadAgents])
 
   const handleDelete = (id: string) => {
     deleteAgent(id)
@@ -671,7 +676,17 @@ function AgentsContent() {
         </Link>
       </div>
 
-      {agents.length === 0 ? (
+      {isLoading ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Bot className="h-12 w-12 text-gray-400 mb-4 animate-pulse" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Loading agents...</h3>
+            <p className="text-gray-500 dark:text-gray-400 text-center mb-6 px-4">
+              Please wait while we fetch your agents
+            </p>
+          </CardContent>
+        </Card>
+      ) : agents.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Bot className="h-12 w-12 text-gray-400 mb-4" />

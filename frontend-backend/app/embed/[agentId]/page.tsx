@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Bot, Send, User, Minimize2 } from "lucide-react"
-import { useAppStore } from "@/lib/store"
 import { useSearchParams } from "next/navigation"
+import { Agent } from "@/lib/store"
 
 interface Message {
   id: string
@@ -19,11 +19,12 @@ interface Message {
 }
 
 export default function EmbedChatPage({ params }: { params: { agentId: string } }) {
-  const { agents } = useAppStore()
   const searchParams = useSearchParams()
+  const [agent, setAgent] = useState<Agent | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingAgent, setIsLoadingAgent] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Get URL parameters
@@ -31,7 +32,26 @@ export default function EmbedChatPage({ params }: { params: { agentId: string } 
   const showHeader = searchParams.get("header") !== "false"
   const primaryColor = `#${searchParams.get("color") || "3b82f6"}`
 
-  const agent = agents.find((a) => a.id === params.agentId)
+  // Fetch agent data from API
+  useEffect(() => {
+    const fetchAgent = async () => {
+      try {
+        const response = await fetch(`/api/agents/${params.agentId}`)
+        if (response.ok) {
+          const agentData = await response.json()
+          setAgent(agentData)
+        } else {
+          console.error('Agent not found')
+        }
+      } catch (error) {
+        console.error('Error fetching agent:', error)
+      } finally {
+        setIsLoadingAgent(false)
+      }
+    }
+
+    fetchAgent()
+  }, [params.agentId])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -55,29 +75,56 @@ export default function EmbedChatPage({ params }: { params: { agentId: string } 
     setInputMessage("")
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(
-      () => {
-        const responses = [
-          "Hello! I'm here to help you. How can I assist you today?",
-          "That's a great question! Let me provide you with some information.",
-          "I understand what you're looking for. Here's what I can tell you...",
-          "Thank you for reaching out! I'm happy to help with that.",
-          "Based on my knowledge, I would recommend the following approach...",
-        ]
+    try {
+      // Send message to chat API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputMessage,
+          agentId: agent.id,
+          personality: agent.personality,
+          knowledgeBase: agent.knowledgeBase,
+          apiKey: agent.apiKey,
+          aiProvider: agent.aiProvider,
+          aiModel: agent.aiModel,
+          maxTokens: agent.maxTokens,
+          temperature: agent.temperature,
+          conversationHistory: messages
+        }),
+      })
 
-        const agentMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: `${responses[Math.floor(Math.random() * responses.length)]} ${agent.personality ? `(Personality: ${agent.personality})` : ""}`,
-          sender: "agent",
-          timestamp: new Date(),
-        }
+      const data = await response.json()
 
-        setMessages((prev) => [...prev, agentMessage])
-        setIsLoading(false)
-      },
-      1000 + Math.random() * 2000,
-    )
+      if (data.error) {
+        throw new Error(data.error)
+      }
+
+      const agentMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.response,
+        sender: "agent",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, agentMessage])
+    } catch (error) {
+      console.error('Error sending message:', error)
+      
+      // Fallback response
+      const agentMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I apologize, but I'm having trouble processing your request right now. Please try again later.",
+        sender: "agent",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, agentMessage])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -85,6 +132,19 @@ export default function EmbedChatPage({ params }: { params: { agentId: string } 
       e.preventDefault()
       handleSendMessage()
     }
+  }
+
+  if (isLoadingAgent) {
+    return (
+      <div
+        className={`flex items-center justify-center h-full ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}
+      >
+        <div className="text-center">
+          <Bot className="h-12 w-12 mx-auto mb-4 opacity-50 animate-pulse" />
+          <p>Loading agent...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!agent) {
@@ -95,6 +155,7 @@ export default function EmbedChatPage({ params }: { params: { agentId: string } 
         <div className="text-center">
           <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Agent not found</p>
+          <p className="text-sm opacity-75 mt-2">The agent you're looking for doesn't exist or has been removed.</p>
         </div>
       </div>
     )
@@ -214,7 +275,7 @@ export default function EmbedChatPage({ params }: { params: { agentId: string } 
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
-            className={theme === "dark" ? "bg-gray-700 border-gray-600" : ""}
+            className={theme === "dark" ? "bg-gray-700 border-gray-600" : "bg-white"}
           />
           <Button
             onClick={handleSendMessage}
