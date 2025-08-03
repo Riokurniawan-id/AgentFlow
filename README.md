@@ -1,120 +1,135 @@
-# AgentFlow - live on Lisk Sepolia
-https://ai-agent-flow-xi.vercel.app/
-![Banner AgentFlow](frontend-backend/public/LISK-BUILDER.png)
+# AgentFlow - Live on Lisk Sepolia
 
-AgentFlow adalah platform manajemen AI Agent terintegrasi blockchain yang memungkinkan pembuatan, pengelolaan, dan deployment AI agent secara terdesentralisasi. Platform ini mendukung integrasi dengan AI providers seperti OpenAI dan Google Gemini, serta menggunakan smart contract di blockchain (Lisk/EVM) untuk transparansi dan keamanan data agent.
+🔗 [Visit AgentFlow](https://ai-agent-flow-xi.vercel.app/)
 
----
+![AgentFlow Banner](frontend-backend/public/LISK-BUILDER.png)
 
-## ✨ Fitur Utama
-
-- **Manajemen AI Agent**: Buat, konfigurasi, dan kelola agent AI dengan personality unik.
-- **Integrasi AI**: Mendukung OpenAI (GPT-3.5, GPT-4) & Google Gemini, user dapat input API key sendiri.
-- **Integrasi Blockchain**: Agent didaftarkan di blockchain menggunakan smart contract (MetaMask, Lisk).
-- **Embed & Integrasi**: Sediakan kode embed (iframe/widget/React) untuk integrasi ke website lain.
-- **Analytics & Monitoring**: Statistik penggunaan, performa, dan monitoring chat agent.
-- **Keamanan & Transparansi**: Semua agent tercatat di blockchain, hanya owner yang bisa mengelola agent-nya.
+**AgentFlow** is a blockchain-integrated AI Agent management platform that enables decentralized creation, configuration, and deployment of AI agents. It supports integration with top AI providers like OpenAI and Google Gemini, using smart contracts (Lisk/EVM) to ensure data transparency and security.
 
 ---
 
-## 👨‍💻 Tim Pengembang
+## ✨ Key Features
 
-- **I PUTU RIO KURNIAWAN** – Fullstack Web
+* **AI Agent Management**: Create, customize, and manage AI agents with unique personalities.
+* **AI Integration**: Supports OpenAI (GPT-3.5, GPT-4) & Google Gemini. Users can input their own API keys.
+* **Blockchain Integration**: Register agents on-chain using smart contracts (MetaMask, Lisk).
+* **Embed & Integration**: Generate embed code (iframe/widget/React) for integration into external websites.
+* **Analytics & Monitoring**: Track usage statistics, performance, and chat logs for each agent.
+* **Security & Transparency**: All agents are stored on the blockchain. Only the owner has control over their agents.
 
-## 🏗️ Arsitektur
+---
 
-### 1. Frontend + Backend (Monorepo Next.js)
+## 👨‍💼 Development Team
+
+* **I PUTU RIO KURNIAWAN** – Fullstack Web Developer
+
+---
+
+## 🏗️ Architecture
+
+### 1. Frontend + Backend (Monorepo - Next.js)
+
 ```
 frontend + backend/
 ├── app/
-│   ├── agents/           # Manajemen agent
-│   ├── analytics/        # Statistik & monitoring
-│   ├── api/chat/         # Endpoint chat AI
-│   ├── billing/          # Manajemen billing
-│   ├── chat/             # Testing agent
-│   ├── create-agent/     # Form pembuatan agent
-│   ├── dashboard/        # Dashboard utama
-│   ├── embed/            # Widget/embed agent
-│   └── profile/          # Profil user
-├── components/           # Komponen UI (shadcn/ui, Radix, custom)
+│   ├── agents/           # Agent management
+│   ├── analytics/        # Stats & monitoring
+│   ├── api/chat/         # AI chat endpoint
+│   ├── billing/          # Billing management
+│   ├── chat/             # Agent tester
+│   ├── create-agent/     # Agent creation form
+│   ├── dashboard/        # Main dashboard
+│   ├── embed/            # Agent embed widgets
+│   └── profile/          # User profile
+├── components/           # UI components (shadcn/ui, Radix, custom)
 ├── hooks/                # Custom React hooks
 ├── lib/                  # Service layer (AI, blockchain, store)
 ├── public/               # Static assets
-├── styles/               # Styling (Tailwind)
-├── package.json          # Dependensi utama (Next.js, React, OpenAI, Gemini, wagmi, RainbowKit, Zustand, dsb)
+├── styles/               # Tailwind styling
+└── package.json          # Core dependencies (Next.js, React, OpenAI, Gemini, wagmi, Zustand, etc.)
 ```
 
-### 2. Smart Contract (Solidity, Hardhat)
+### 2. Smart Contracts (Solidity + Hardhat)
+
 ```
 smartcontract/
 ├── contracts/
-│   └── AgentRegistry.sol # Smart contract utama untuk registry agent
-├── scripts/              # Script deploy & utilitas
-├── deployment-info.json  # Info deployment contract
-├── hardhat.config.ts     # Konfigurasi Hardhat
-├── package.json          # Dependensi blockchain (Hardhat, OpenZeppelin)
+│   └── AgentRegistry.sol # Main smart contract for agent registry
+├── scripts/              # Deployment & utility scripts
+├── deployment-info.json  # Contract deployment details
+├── hardhat.config.ts     # Hardhat configuration
+└── package.json          # Blockchain dependencies (Hardhat, OpenZeppelin)
 ```
 
 ---
 
-## 🔗 Integrasi Blockchain
+## 🔗 Blockchain Integration
 
-- **Smart Contract: AgentRegistry**
-  - Setiap agent didaftarkan di blockchain dengan data: owner, nama, hash detail (off-chain), tipe agent, status aktif.
-  - Fungsi utama:
-    - `createAgent(name, hash, agentType)`: Mendaftarkan agent baru.
-    - `getMyAgents()`: Mendapatkan daftar agent milik user.
-    - `getAgent(id)`: Mendapatkan detail agent berdasarkan ID.
-  - Semua interaksi agent (create, update, query) tercatat di blockchain untuk transparansi & keamanan.
+* **Smart Contract: AgentRegistry**
 
-- **Wallet Integration**
-  - Mendukung MetaMask untuk sign & verifikasi kepemilikan agent.
-  - Address user digunakan sebagai identitas utama di blockchain.
+  * Each agent is registered on-chain with the following data: owner, name, detail hash (off-chain), agent type, and status.
+  * Key functions:
 
----
+    * `createAgent(name, hash, agentType)`: Registers a new agent.
+    * `getMyAgents()`: Retrieves a list of the user’s agents.
+    * `getAgent(id)`: Retrieves agent details by ID.
+  * All agent interactions (create, update, query) are recorded on-chain to ensure transparency and integrity.
 
-## 🤖 Integrasi AI
+* **Wallet Integration**
 
-- **Provider**: OpenAI (GPT-3.5, GPT-4, dst), Google Gemini (Gemini 1.5, 2.0 Flash, dst)
-- **Fitur**:
-  - User bisa input API key sendiri.
-  - Pilihan model, parameter (temperature, max tokens).
-  - Validasi API key & fallback mode jika key tidak tersedia.
-  - Chat endpoint terintegrasi langsung dengan smart contract (agent yang aktif di blockchain).
+  * MetaMask is used for signing and verifying agent ownership.
+  * The user's wallet address acts as their unique identity on-chain.
 
 ---
 
-## 📦 Teknologi
+## 🤖 AI Integration
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui, Zustand
-- **AI Integration**: OpenAI SDK, Google Generative AI SDK
-- **Blockchain**: Solidity, Hardhat, MetaMask, wagmi, RainbowKit, Lisk/EVM
-- **UI Components**: Radix UI, Lucide Icons
+* **Providers**: OpenAI (GPT-3.5, GPT-4, etc.), Google Gemini (Gemini 1.5, 2.0 Flash, etc.)
+* **Features**:
+
+  * Users can provide their own API keys.
+  * Model selection and tuning parameters (temperature, max tokens).
+  * API key validation and fallback mechanism if key is missing.
+  * AI chat endpoint is directly linked with agents registered on the blockchain.
 
 ---
 
-## 🚀 Cara Menjalankan
+## 📦 Tech Stack
 
-### Prasyarat
-- Node.js 18+
-- pnpm atau npm
-- MetaMask wallet
-- Koneksi ke jaringan Lisk/EVM
+* **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui, Zustand
+* **AI Integration**: OpenAI SDK, Google Generative AI SDK
+* **Blockchain**: Solidity, Hardhat, MetaMask, wagmi, RainbowKit, Lisk/EVM-compatible
+* **UI Libraries**: Radix UI, Lucide Icons
 
-### Instalasi & Development
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* Node.js 18+
+* pnpm or npm
+* MetaMask wallet
+* Connection to Lisk/EVM testnet
+
+### Local Development
+
 ```bash
 pnpm install
 pnpm dev
 ```
-Atau gunakan npm jika tidak ada pnpm.
+
+Or use `npm` if `pnpm` is not available.
 
 ### Build & Production
+
 ```bash
 pnpm build
 pnpm start
 ```
 
-### Deploy Smart Contract
+### Smart Contract Deployment
+
 ```bash
 cd smartcontract
 npm install
@@ -124,9 +139,7 @@ npx hardhat run scripts/deploy.ts --network <network>
 
 ---
 
-## 📄 Lisensi
+## 📄 License
 
-MIT License 
-
----
+MIT License
 
